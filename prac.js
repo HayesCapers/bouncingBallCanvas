@@ -12,7 +12,21 @@ context.strokeStyle = "#ff0000"
 
 var ballArray = [{x: 200, y: 200, radius: 50, xDirection: 1, yDirection: 1}]
 
-
+function checkBox(ball, array){
+	for (let i = 0; i < array.length; i++){
+		var distX = ball.x - array[i].x;
+		var distY = ball.y - array[i].y;
+		var distance = Math.sqrt((distX * distX) + (distY * distY))
+		if (ball == array[i]){
+			return
+		}else if (distance <= ball.radius + array[i].radius){
+			ball.xDirection = - ball.xDirection;
+			ball.yDirection = - ball.yDirection;
+			array[i].xDirection = - array[i].xDirection;
+			array[i].yDirection = - array[i].yDirection;
+		}
+	}
+}
 
 function drawBall(array){
 	context.beginPath();
@@ -30,11 +44,20 @@ function drawBall(array){
 		}
 		array[i].x += 4 * array[i].xDirection;
 		array[i].y += 2 * array[i].yDirection;
+		checkBox(array[i],array)
 	}
 }
 
 function addBall(){
-	ballArray.push({x: Math.ceil((Math.random()*400) +51), y: Math.ceil((Math.random()*400) +51), radius: Math.ceil(Math.random()*50), xDirection: 1, yDirection: 1});
+	var randomCoordinate = Math.ceil((Math.random()*400) +51)
+	var randomRadius = Math.ceil(Math.random()*50)
+	ballArray.push({
+		x: randomCoordinate, 
+		y: randomCoordinate, 
+		radius: randomRadius, 
+		xDirection: 1, 
+		yDirection: 1
+	});
 	console.log(ballArray)
 }
 
