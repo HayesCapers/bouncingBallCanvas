@@ -4,10 +4,7 @@ var canvas = document.getElementById("canvas");
 var context = canvas.getContext('2d');
 context.strokeStyle = "#ff0000"
 
-// draw a circle:
-// context.beginPath()
-// context.fillStyle = "#f6b2ff"
-// context.arc(200,200,200,0*Math.PI,2*Math.PI);
+
 
 function Ball(startX, startY, radius){
 	this.x = startX;
@@ -16,13 +13,30 @@ function Ball(startX, startY, radius){
 	this.xDirection = 1;
 	this.yDirection = 1;
 	this.mass = this.radius / 2;
-	this.veloX = 4;
-	this.veloY = 2;
+	this.veloX = 0;
+	this.veloY = 0;
+	this.bounce = 0.6;
+	this.gravity = 0.05;
+	this.gravitySpeed = 0;
+
+	this.hitBottom = function(){
+		var rockBottom = 500 - this.radius
+		var tipTop = this.radius
+		if (this.y > rockBottom){
+			this.y = rockBottom;
+			this.gravitySpeed = -(this.gravitySpeed * this.bounce);
+		}else if (this.y < tipTop){
+			this.y = tipTop;
+			this.veloY = -this.veloY
+		}
+	}
 }
 
 
 
-var ballArray = [new Ball(200,200,50)]
+var ballArray = [new Ball(200,200,50)];
+var chaosBool = false;
+var chaosTimer = 0
 
 
 function checkBox(ball, array){
@@ -33,23 +47,45 @@ function checkBox(ball, array){
 		if (ball == array[i]) {
 			return
 		}else if (distance <= ball.radius + array[i].radius) {
-			if ((ball.yDirection == array[i].yDirection) && (ball.xDirection != array[i].xDirection)) {
-				ball.xDirection = - ball.xDirection;
-				array[i].xDirection = - array[i].xDirection;
-			}else if ((ball.xDirection == array[i].xDirection) && (ball.yDirection != array[i].yDirection)) {
-				ball.yDirection = - ball.yDirection;
-				array[i].yDirection = - array[i].yDirection;
-			}else{ 
-				ball.xDirection = - ball.xDirection;
-				array[i].xDirection = - array[i].xDirection;
-				ball.yDirection = - ball.yDirection;
-				array[i].yDirection = - array[i].yDirection;
-			}
+			
 		}		
 	}
 }
 
-function drawBall(array){
+function checkWall(ball){
+	if ((ball.x > 500 - ball.radius) || (ball.x <ball.radius)){
+		ball.veloX = -ball.veloX;
+	}
+	if ((ball.y >= 500 - ball.radius) || ball.y == ball.radius){
+		ball.veloY = -ball.veloY;
+	}
+}
+
+function moveBall(ball){
+	ball.gravitySpeed += ball.gravity;
+	ball.x += ball.veloX;
+	ball.y += ball.veloY + ball.gravitySpeed;
+	ball.hitBottom();
+}
+
+function changeBool(){
+	chaosBool = true;
+}
+
+function chaos(bool, ball){
+	if (bool){
+		ball.veloY= -5;
+		chaosTimer++;
+	}
+	if (chaosTimer == 20){
+		ball.veloY = 0;
+		bool = false;
+		chaosTimer = 0;
+	}
+}
+
+
+function drawBall(array, bool){
 	context.beginPath();
 	for (i = 0; i < array.length; i++){
 		context.fillStyle = "rgb(255,255,255)";
@@ -59,15 +95,10 @@ function drawBall(array){
 		context.clearRect(0,0,500,500);
 		context.closePath();
 		context.fill();
-		if ((array[i].x > 500 - array[i].radius) || (array[i].x <array[i].radius)){
-			array[i].xDirection = -array[i].xDirection
-		}
-		if ((array[i].y > 500 - array[i].radius) || array[i].y < array[i].radius){
-			array[i].yDirection = -array[i].yDirection
-		}
-		array[i].x += array[i].veloX * array[i].xDirection;
-		array[i].y += array[i].veloY * array[i].yDirection;
-		checkBox(array[i],array)
+		chaos(bool, array[i]);
+		checkWall(array[i]);
+		checkBox(array[i],array);
+		moveBall(array[i]);
 	}
 }
 
@@ -83,7 +114,7 @@ function addBall(){
 // }
 
 
-var ballin = setInterval(drawBall, 20, ballArray);
+var ballin = setInterval(drawBall, 20, ballArray, chaosBool);
 
 // canvas.addEventListener("click", function(event){
 // 	// console.log(event.x, event.y)
